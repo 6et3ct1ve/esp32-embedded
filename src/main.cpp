@@ -1,51 +1,63 @@
 #include <Arduino.h>
 
-constexpr uint8_t kLedRed = 15;
-constexpr uint8_t kLedBlue = 16;
-constexpr uint8_t kLedGreen = 17;
+constexpr uint8_t kRedBlue = 15;
+constexpr uint8_t kGreen = 17;
 constexpr uint32_t kSpeedTwoCoeff = 2;
 
+enum class RedBlueState : uint8_t {
+    kOff, kRed, kBlue
+};
+
 struct LedStep {
-    bool red = false;
-    bool blue = false;
+    RedBlueState redBlue = RedBlueState::kOff;
     bool green = false;
     uint32_t durationMs = 0;
 };
 
 constexpr LedStep kLedSteps[] = {
-    {.red = true, .durationMs = 1000},
+    {.redBlue = RedBlueState::kRed, .durationMs = 1000},
     {.green = true, .durationMs = 1000},
-    {.blue = true, .durationMs = 1000},
+    {.redBlue = RedBlueState::kBlue, .durationMs = 1000},
     {.durationMs = 500},
-    {.blue = true, .durationMs = 1500},
+    {.redBlue = RedBlueState::kBlue, .durationMs = 1500},
     {.durationMs = 500},
-    {.blue = true, .durationMs = 1500},
+    {.redBlue = RedBlueState::kBlue, .durationMs = 1500},
     {.green = true, .durationMs = 500},
-    {.red = true, .durationMs = 500},
+    {.redBlue = RedBlueState::kRed, .durationMs = 500},
     {.durationMs = 1000},
-    {.red = true, .durationMs = 500},
+    {.redBlue = RedBlueState::kRed, .durationMs = 500},
     {.durationMs = 1000},
     {.green = true, .durationMs = 500},
     {.durationMs = 1000},
-    {.red = true, .durationMs = 500},
-    {.blue = true, .durationMs = 500},
+    {.redBlue = RedBlueState::kRed, .durationMs = 500},
+    {.redBlue = RedBlueState::kBlue, .durationMs = 500},
     {.durationMs = 250},
-    {.blue = true, .durationMs = 500},
-    {.red = true, .durationMs = 500},
+    {.redBlue = RedBlueState::kBlue, .durationMs = 500},
+    {.redBlue = RedBlueState::kRed, .durationMs = 500},
     {.green = true, .durationMs = 500},
     {.durationMs = 2000},
 };
 
 void setup() {
-    pinMode(kLedRed, OUTPUT);
-    pinMode(kLedBlue, OUTPUT);
-    pinMode(kLedGreen, OUTPUT);
+    pinMode(kRedBlue, OUTPUT);
+    pinMode(kGreen, OUTPUT);
 }
 
 void ledState(LedStep step, bool speedTwo) {
-    digitalWrite(kLedRed, step.red ? HIGH : LOW);
-    digitalWrite(kLedBlue, step.blue ? HIGH : LOW);
-    digitalWrite(kLedGreen, step.green ? HIGH : LOW);
+    switch (step.redBlue) {
+        case RedBlueState::kOff:
+            pinMode(kRedBlue, INPUT);
+            break;
+        case RedBlueState::kRed:
+            pinMode(kRedBlue, OUTPUT);
+            digitalWrite(kRedBlue, HIGH);
+            break;
+        case RedBlueState::kBlue:
+            pinMode(kRedBlue, OUTPUT);
+            digitalWrite(kRedBlue, LOW);
+            break;
+    }
+    digitalWrite(kGreen, step.green ? HIGH : LOW);
     delay(speedTwo ? step.durationMs / kSpeedTwoCoeff : step.durationMs);
 }
 
