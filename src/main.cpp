@@ -3,6 +3,7 @@
 constexpr uint8_t LED_RED = 15;
 constexpr uint8_t LED_BLUE = 16;
 constexpr uint8_t LED_GREEN = 17;
+constexpr uint32_t SPEED_TWO_DURATION = 2;
 
 struct LedStep {
     bool red = false;
@@ -41,15 +42,17 @@ void setup() {
     pinMode(LED_GREEN, OUTPUT);
 }
 
-void ledState(LedStep step) {
+void ledState(LedStep step, bool speedTwo) {
     digitalWrite(LED_RED, step.red ? HIGH : LOW);
     digitalWrite(LED_BLUE, step.blue ? HIGH : LOW);
     digitalWrite(LED_GREEN, step.green ? HIGH : LOW);
-    delay(step.durationMs);
+    delay(speedTwo ? step.durationMs / SPEED_TWO_DURATION : step.durationMs);
 }
 
 void loop() {
+    static bool speedTwo = false;
     for (const auto& step : kLedSteps) {
-        ledState(step);
+        ledState(step, speedTwo);
     }
+    speedTwo = !speedTwo;
 }
