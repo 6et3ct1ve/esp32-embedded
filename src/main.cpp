@@ -28,4 +28,24 @@ void delayTime(bool led_red, bool led_blue, uint32_t durationMs) {
 void loop() {
     delayTime(true, false, SEC);
     delayTime(false, true, SEC);
+
+    delayTime(false, false, SEC/2);
+    delayTime(false, true, SEC*1.5);
+    delayTime(false, false, SEC/2);
+    delayTime(false, true, SEC*1.5);
+    delayTime(false, false, SEC/2);
+
+    delayTime(true, false, SEC/2);
+    delayTime(false, false, SEC);
+    delayTime(true, false, SEC/2);
+    delayTime(false, false, SEC);
+    delayTime(true, false, SEC/2);
+    delayTime(false, false, SEC);
+
+    delayTime(true, false, SEC/2);
+    delayTime(false, true, SEC/2);
+    delayTime(false, false, SEC/4);
+    delayTime(false,true, SEC/2);
+    delayTime(true, false, SEC/2);
+    delayTime(false, false, SEC*2);
 }
