@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-constexpr uint8_t LED_RED = 15;
-constexpr uint8_t LED_BLUE = 16;
-constexpr uint8_t LED_GREEN = 17;
-constexpr uint32_t SPEED_TWO_DURATION = 2;
+constexpr uint8_t kLedRed = 15;
+constexpr uint8_t kLedBlue = 16;
+constexpr uint8_t kLedGreen = 17;
+constexpr uint32_t kSpeedTwoCoeff = 2;
 
 struct LedStep {
     bool red = false;
@@ -37,16 +37,16 @@ constexpr LedStep kLedSteps[] = {
 };
 
 void setup() {
-    pinMode(LED_RED, OUTPUT);
-    pinMode(LED_BLUE, OUTPUT);
-    pinMode(LED_GREEN, OUTPUT);
+    pinMode(kLedRed, OUTPUT);
+    pinMode(kLedBlue, OUTPUT);
+    pinMode(kLedGreen, OUTPUT);
 }
 
 void ledState(LedStep step, bool speedTwo) {
-    digitalWrite(LED_RED, step.red ? HIGH : LOW);
-    digitalWrite(LED_BLUE, step.blue ? HIGH : LOW);
-    digitalWrite(LED_GREEN, step.green ? HIGH : LOW);
-    delay(speedTwo ? step.durationMs / SPEED_TWO_DURATION : step.durationMs);
+    digitalWrite(kLedRed, step.red ? HIGH : LOW);
+    digitalWrite(kLedBlue, step.blue ? HIGH : LOW);
+    digitalWrite(kLedGreen, step.green ? HIGH : LOW);
+    delay(speedTwo ? step.durationMs / kSpeedTwoCoeff : step.durationMs);
 }
 
 void loop() {
