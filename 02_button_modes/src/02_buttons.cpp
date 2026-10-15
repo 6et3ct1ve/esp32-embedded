@@ -20,9 +20,11 @@ void setup() {
 
 
 void loop() {
-    static bool speedTwo = false;
-    for (const auto& step : kLedSteps) {
-        ledState(step, speedTwo);
+    static bool sync = true;
+    if (digitalRead(kSyncButton) == LOW) {
+        sync = true;
     }
-    speedTwo = !speedTwo;
+    else if (digitalRead(kAlternateButton) == LOW) {
+        sync = false;
+    }
 }
