@@ -1,8 +1,9 @@
 #include <Arduino.h>
 
+constexpr uint8_t kAlternateButton = 0;
 constexpr uint8_t kRed = 15;
 constexpr uint8_t kBlue = 16;
-constexpr uint32_t kSpeedTwoCoeff = 2;
+constexpr uint8_t kSyncButton = 21;
 
 struct LedStep {
     bool red = false;
@@ -11,8 +12,10 @@ struct LedStep {
 };
 
 void setup() {
+    pinMode(kAlternateButton, INPUT);
     pinMode(kRed, OUTPUT);
     pinMode(kBlue, OUTPUT);
+    pinMode(kSyncButton, INPUT_PULLUP);
 }
 
 
