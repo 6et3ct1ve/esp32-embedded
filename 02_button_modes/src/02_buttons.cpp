@@ -46,4 +46,16 @@ void loop() {
     else if (digitalRead(kAlternateButton) == LOW) {
         sync = false;
     }
+
+
+    if (sync) {
+        for (const auto& step : kSyncSteps) {
+            ledStep(step);
+        }
+    }
+    else {
+        for (const auto& step : kAlternateSteps) {
+            ledStep(step);
+        }
+    }
 }
