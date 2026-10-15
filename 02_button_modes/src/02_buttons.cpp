@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <iterator>
 
 constexpr uint8_t kAlternateButton = 0;
 constexpr uint8_t kRed = 15;
@@ -25,37 +26,49 @@ constexpr LedStep kAlternateSteps[] = {
     {.blue = true, .durationMs = kAlternateDurationMs},
 };
 
+void ledStep(const LedStep& step) {
+    digitalWrite(kRed, step.red ? HIGH : LOW);
+    digitalWrite(kBlue, step.blue ? HIGH : LOW);
+}
+
 void setup() {
     pinMode(kAlternateButton, INPUT);
     pinMode(kRed, OUTPUT);
     pinMode(kBlue, OUTPUT);
     pinMode(kSyncButton, INPUT_PULLUP);
-}
-
-void ledStep(const LedStep& step) {
-    digitalWrite(kRed, step.red ? HIGH : LOW);
-    digitalWrite(kBlue, step.blue ? HIGH : LOW);
-    delay(step.durationMs);
+    ledStep(kSyncSteps[0]);
 }
 
 void loop() {
+    static uint32_t stepStart = millis();
+    static size_t stepIndex = 0;
     static bool sync = true;
+
+    bool wantSync = sync;
+    bool stepChanged = false;
+
     if (digitalRead(kSyncButton) == LOW) {
-        sync = true;
+        wantSync = true;
     }
     else if (digitalRead(kAlternateButton) == LOW) {
-        sync = false;
+        wantSync = false;
     }
 
-
-    if (sync) {
-        for (const auto& step : kSyncSteps) {
-            ledStep(step);
-        }
+    if (wantSync != sync) {
+        sync = wantSync;
+        stepIndex = 0;
+        stepStart = millis();
+        stepChanged = true;
     }
-    else {
-        for (const auto& step : kAlternateSteps) {
-            ledStep(step);
-        }
+
+    const auto& steps = sync ? kSyncSteps : kAlternateSteps;
+    if (millis() - stepStart >= steps[stepIndex].durationMs) {
+        stepStart += steps[stepIndex].durationMs;
+        stepIndex = (stepIndex + 1) % std::size(steps);
+        stepChanged = true;
+    }
+    
+    if (stepChanged) {
+        ledStep(steps[stepIndex]);
     }
 }
