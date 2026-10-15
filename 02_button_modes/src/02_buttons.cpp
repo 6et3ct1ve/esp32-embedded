@@ -9,12 +9,13 @@ constexpr uint8_t kSyncButton = 21;
 constexpr uint32_t kSyncDurationMs = 200;
 constexpr uint32_t kAlternateDurationMs = 1000;
 
+constexpr bool kStartSync = true;
+
 struct LedStep {
     bool red = false;
     bool blue = false;
     uint32_t durationMs = 0;
 };
-
 
 constexpr LedStep kSyncSteps[] = {
     {.red = true, .blue = true, .durationMs = kSyncDurationMs},
@@ -26,7 +27,7 @@ constexpr LedStep kAlternateSteps[] = {
     {.blue = true, .durationMs = kAlternateDurationMs},
 };
 
-void ledStep(const LedStep& step) {
+void ledStep(LedStep step) {
     digitalWrite(kRed, step.red ? HIGH : LOW);
     digitalWrite(kBlue, step.blue ? HIGH : LOW);
 }
@@ -36,21 +37,20 @@ void setup() {
     pinMode(kRed, OUTPUT);
     pinMode(kBlue, OUTPUT);
     pinMode(kSyncButton, INPUT_PULLUP);
-    ledStep(kSyncSteps[0]);
+    ledStep(kStartSync ? kSyncSteps[0] : kAlternateSteps[0]);
 }
 
 void loop() {
     static uint32_t stepStart = millis();
     static size_t stepIndex = 0;
-    static bool sync = true;
+    static bool sync = kStartSync;
 
     bool wantSync = sync;
     bool stepChanged = false;
 
     if (digitalRead(kSyncButton) == LOW) {
         wantSync = true;
-    }
-    else if (digitalRead(kAlternateButton) == LOW) {
+    } else if (digitalRead(kAlternateButton) == LOW) {
         wantSync = false;
     }
 
@@ -67,7 +67,7 @@ void loop() {
         stepIndex = (stepIndex + 1) % std::size(steps);
         stepChanged = true;
     }
-    
+
     if (stepChanged) {
         ledStep(steps[stepIndex]);
     }
