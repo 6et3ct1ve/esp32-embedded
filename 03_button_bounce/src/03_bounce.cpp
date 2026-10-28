@@ -6,6 +6,8 @@
    constexpr uint8_t kButtonIn = 16;
    constexpr uint32_t kQuietMs = 50;
    constexpr uint32_t kSerialBaud = 115200;
+   constexpr const char* kPressLabel = "press";
+   constexpr const char* kReleaseLabel = "release";
 
    std::atomic<uint32_t> buttonCounter{0};
 
@@ -34,7 +36,10 @@
   }
 
   if (now - lastChangeMs >= kQuietMs && count != burstStartCount) {
-    Serial.printf("Button count: %u\n", count - burstStartCount);
+    const char* edgeType = (digitalRead(kButtonIn) == LOW) ? kPressLabel : kReleaseLabel;
+    Serial.printf("%-7s %u\n", edgeType, count - burstStartCount);
     burstStartCount = count;
   }
+
+  
  }
