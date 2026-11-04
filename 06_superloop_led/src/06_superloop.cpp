@@ -13,9 +13,12 @@ namespace {
     class Led {
     public:
         explicit Led(uint8_t pin) : pin_(pin) {}
-        [[nodiscard]] LedState state() const { return state_; }
+        Led(const Led&) = delete;
+        Led& operator=(const Led&) = delete;
+
         void init();
-        void set(LedState state);
+        void set(LedState newState);
+        [[nodiscard]] LedState state() const { return state_; }
 
     private:
         const uint8_t pin_;
@@ -27,8 +30,8 @@ namespace {
         set(LedState::kOff);
     }
 
-    void Led::set(LedState state) {
-        state_ = state;
+    void Led::set(LedState newState) {
+        state_ = newState;
         digitalWrite(pin_, (state_ == LedState::kOn) ? HIGH : LOW);
     }
 
