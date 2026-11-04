@@ -3,6 +3,11 @@
 
 namespace {
 
+    struct ProfilingConfig {
+    static constexpr uint32_t kSerialBaud = 115200;
+    static constexpr uint32_t kReportEveryIterations = 1000;
+};
+
     enum class LedState : uint8_t { kOff, kOn };
 
     struct LedConfig {
@@ -41,14 +46,29 @@ namespace {
 
 void setup() {
     led.init();
+    Serial.begin(ProfilingConfig::kSerialBaud);
 }
 
 void loop() {
+    const uint32_t iterationStartUs = micros();
+
     static uint32_t lastToggleMs = millis();
     const uint32_t currentMs = millis();
 
     if (currentMs - lastToggleMs >= LedConfig::kBlinkIntervalMs) {
         lastToggleMs += LedConfig::kBlinkIntervalMs;
         led.set((led.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
+    }
+
+    static uint32_t totalLoopTimeUs = 0;
+    static uint32_t iterationCount = 0;
+    totalLoopTimeUs += (micros() - iterationStartUs);
+    iterationCount++;
+
+    if (iterationCount >= ProfilingConfig::kReportEveryIterations) {
+        const float averageLoopTimeUs = static_cast<float>(totalLoopTimeUs) / iterationCount;
+        Serial.printf("Average loop time: %.2f us\n", averageLoopTimeUs);
+        totalLoopTimeUs = 0;
+        iterationCount = 0;
     }
 }
