@@ -13,6 +13,7 @@ namespace {
     class Led {
     public:
         explicit Led(uint8_t pin) : pin_(pin) {}
+        [[nodiscard]] LedState state() const { return state_; }
         void init();
         void set(LedState state);
 
@@ -41,4 +42,10 @@ void setup() {
 
 void loop() {
     static uint32_t lastToggleMs = millis();
+    const uint32_t currentMs = millis();
+
+    if (currentMs - lastToggleMs >= LedConfig::kBlinkIntervalMs) {
+        lastToggleMs += LedConfig::kBlinkIntervalMs;
+        led.set((led.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
+    }
 }
