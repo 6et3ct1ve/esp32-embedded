@@ -1,12 +1,22 @@
 #include <Arduino.h>
-#include <iterator>
+#include <cstdint>
 
-constexpr uint8_t kWhite = 16;
+namespace {
+
+    enum class LedState : uint8_t { kOff, kOn };
+
+    struct LedConfig {
+        static constexpr uint8_t kPin = 16;
+        static constexpr uint32_t kBlinkIntervalMs = 1000;
+
+    };
+
+}  // namespace
 
 void setup() {
-    pinMode(kWhite, OUTPUT);
+    pinMode(LedConfig::kPin, OUTPUT);
 }
 
 void loop() {
-    static uint32_t stepStart = millis();
+    static uint32_t lastToggleMs = millis();
 }
