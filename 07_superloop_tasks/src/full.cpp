@@ -78,8 +78,14 @@ static_assert(std::size(blinkers) == std::size(kBlinkConfigs));
 }  // namespace
 
 void setup() {
+    for (auto& blinker : blinkers) {
+        blinker.init();
+    }
 }
 
 void loop() {
-
+    const uint32_t nowMs = millis();
+    for (auto& blinker : blinkers) {
+        blinker.update(nowMs);
+    }
 }
