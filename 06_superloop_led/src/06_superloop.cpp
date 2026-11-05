@@ -20,6 +20,20 @@ struct ProfilingConfig {
 
 enum class LedState : uint8_t { kOff, kOn };
 
+enum class LedMode : uint8_t { kBlink, kOn, kOff };
+
+LedMode nextMode(LedMode current) {
+    switch(current){
+        case LedMode::kBlink:
+            return LedMode::kOn;
+        case LedMode::kOn:
+            return LedMode::kOff;
+        case LedMode::kOff:
+            return LedMode::kBlink;
+    }
+    return LedMode::kBlink;
+}
+
 class Led {
 public:
     explicit Led(uint8_t pin) : pin_(pin) {}
