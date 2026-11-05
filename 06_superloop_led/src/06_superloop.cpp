@@ -10,7 +10,7 @@ struct LedConfig {
 
 struct ButtonConfig {
     static constexpr uint8_t kPin = 17;
-    static constexpr uint32_t kDebounceIntervalMs = 50;
+    static constexpr uint32_t kDebounceIntervalMs = 10;
 };
 
 struct ProfilingConfig {
@@ -79,14 +79,20 @@ void loop() {
     const uint32_t iterationStartUs = micros();
 
     static uint32_t lastToggleMs = millis();
-    static uint32_t lastPressMs = 0;
     static LedMode mode = LedMode::kBlink;
+    static bool pendingButtonPress = false;
+    static uint32_t lastEdgeMs = 0;
     const uint32_t currentMs = millis();
     
     if (buttonPressed) {
         buttonPressed = false;
-        if (currentMs - lastPressMs >= ButtonConfig::kDebounceIntervalMs) {
-            lastPressMs = currentMs;
+        pendingButtonPress = true;
+        lastEdgeMs = currentMs;
+    }
+
+    if (pendingButtonPress && (currentMs - lastEdgeMs >= ButtonConfig::kDebounceIntervalMs)) {
+        pendingButtonPress = false;
+        if (digitalRead(ButtonConfig::kPin) == LOW) {
             mode = nextMode(mode);
             if (mode == LedMode::kBlink) {
                 lastToggleMs = currentMs;
