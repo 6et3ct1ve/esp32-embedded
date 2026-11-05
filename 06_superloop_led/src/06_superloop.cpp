@@ -79,12 +79,35 @@ void loop() {
     const uint32_t iterationStartUs = micros();
 
     static uint32_t lastToggleMs = millis();
+    static uint32_t lastPressMs = 0;
+    static LedMode mode = LedMode::kBlink;
     const uint32_t currentMs = millis();
-
-    if (currentMs - lastToggleMs >= LedConfig::kBlinkIntervalMs) {
-        lastToggleMs += LedConfig::kBlinkIntervalMs;
-        led.set((led.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
+    
+    if (buttonPressed) {
+        buttonPressed = false;
+        if (currentMs - lastPressMs >= ButtonConfig::kDebounceIntervalMs) {
+            lastPressMs = currentMs;
+            mode = nextMode(mode);
+            if (mode == LedMode::kBlink) {
+                lastToggleMs = currentMs;
+            }
+        }
     }
+
+    switch (mode) {
+        case LedMode::kBlink:
+            if (currentMs - lastToggleMs >= LedConfig::kBlinkIntervalMs) {
+                lastToggleMs += LedConfig::kBlinkIntervalMs;
+                led.set((led.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
+            }
+            break;
+        case LedMode::kOn:
+            led.set(LedState::kOn);
+            break;
+        case LedMode::kOff:
+            led.set(LedState::kOff);
+            break;
+        }
 
     static uint32_t totalLoopTimeUs = 0;
     static uint32_t iterationCount = 0;
