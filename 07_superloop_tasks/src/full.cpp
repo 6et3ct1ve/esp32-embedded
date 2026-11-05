@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <cstdint>
+#include <iterator>
 
 namespace {
 
@@ -41,7 +42,38 @@ void Led::set(LedState newState) {
     digitalWrite(pin_, (state_ == LedState::kOn) ? HIGH : LOW);
 }
 
-Led led(LedConfig::kPin);
+class Blinker {
+public:
+    explicit Blinker(BlinkConfig config)
+        : led_(config.pin), intervalMs_(config.intervalMs) {}
+
+    void init();
+    void update(uint32_t nowMs);
+
+private:
+    Led led_;
+    const uint32_t intervalMs_;
+    uint32_t lastToggleMs_ = 0;
+};
+
+void Blinker::init() {
+    led_.init();
+    lastToggleMs_ = millis();
+}
+
+void Blinker::update(uint32_t nowMs) {
+    if (nowMs - lastToggleMs_ >= intervalMs_) {
+        lastToggleMs_ += intervalMs_;
+        led_.set((led_.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
+    }
+}
+
+Blinker blinkers[] = {
+    Blinker{kBlinkConfigs[0]},
+    Blinker{kBlinkConfigs[1]},
+    Blinker{kBlinkConfigs[2]},
+};
+static_assert(std::size(blinkers) == std::size(kBlinkConfigs));
 
 }  // namespace
 
