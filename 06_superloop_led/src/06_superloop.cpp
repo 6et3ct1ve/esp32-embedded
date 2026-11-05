@@ -8,6 +8,11 @@ struct LedConfig {
     static constexpr uint32_t kBlinkIntervalMs = 1000;
 };
 
+struct ButtonConfig {
+    static constexpr uint8_t kPin = 17;
+    static constexpr uint32_t kDebounceIntervalMs = 50;
+};
+
 struct ProfilingConfig {
     static constexpr uint32_t kSerialBaud = 115200;
     static constexpr uint32_t kReportEveryIterations = 1000;
@@ -41,9 +46,17 @@ void Led::set(LedState newState) {
 }
 
 Led led(LedConfig::kPin);
+volatile bool buttonPressed = false;
+
+void IRAM_ATTR buttonIsr() {
+    buttonPressed = true;
+}
+
 }  // namespace
 
 void setup() {
+    pinMode(ButtonConfig::kPin, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(ButtonConfig::kPin), buttonIsr, FALLING);
     led.init();
     Serial.begin(ProfilingConfig::kSerialBaud);
 }
