@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <atomic>
 #include <cstdint>
 
 namespace {
@@ -60,10 +61,11 @@ void Led::set(LedState newState) {
 }
 
 Led led(LedConfig::kPin);
-volatile bool buttonPressed = false;
+std::atomic<bool> buttonPressed{false};
+static_assert(std::atomic<bool>::is_always_lock_free);
 
 void IRAM_ATTR buttonIsr() {
-    buttonPressed = true;
+    buttonPressed.store(true);
 }
 
 }  // namespace
@@ -84,8 +86,7 @@ void loop() {
     static uint32_t lastEdgeMs = 0;
     const uint32_t currentMs = millis();
     
-    if (buttonPressed) {
-        buttonPressed = false;
+    if (buttonPressed.exchange(false)) {
         pendingButtonPress = true;
         lastEdgeMs = currentMs;
     }
