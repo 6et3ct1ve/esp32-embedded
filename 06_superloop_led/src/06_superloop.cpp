@@ -3,45 +3,44 @@
 
 namespace {
 
-    struct ProfilingConfig {
+struct LedConfig {
+    static constexpr uint8_t kPin = 16;
+    static constexpr uint32_t kBlinkIntervalMs = 1000;
+};
+
+struct ProfilingConfig {
     static constexpr uint32_t kSerialBaud = 115200;
     static constexpr uint32_t kReportEveryIterations = 1000;
 };
 
-    enum class LedState : uint8_t { kOff, kOn };
+enum class LedState : uint8_t { kOff, kOn };
 
-    struct LedConfig {
-        static constexpr uint8_t kPin = 16;
-        static constexpr uint32_t kBlinkIntervalMs = 1000;
-    };
+class Led {
+public:
+    explicit Led(uint8_t pin) : pin_(pin) {}
+    Led(const Led&) = delete;
+    Led& operator=(const Led&) = delete;
 
-    class Led {
-    public:
-        explicit Led(uint8_t pin) : pin_(pin) {}
-        Led(const Led&) = delete;
-        Led& operator=(const Led&) = delete;
+    void init();
+    void set(LedState newState);
+    [[nodiscard]] LedState state() const { return state_; }
 
-        void init();
-        void set(LedState newState);
-        [[nodiscard]] LedState state() const { return state_; }
+private:
+    const uint8_t pin_;
+    LedState state_ = LedState::kOff;
+};
 
-    private:
-        const uint8_t pin_;
-        LedState state_ = LedState::kOff;
-    };
+void Led::init() {
+    pinMode(pin_, OUTPUT);
+    set(LedState::kOff);
+}
 
-    void Led::init() {
-        pinMode(pin_, OUTPUT);
-        set(LedState::kOff);
-    }
+void Led::set(LedState newState) {
+    state_ = newState;
+    digitalWrite(pin_, (state_ == LedState::kOn) ? HIGH : LOW);
+}
 
-    void Led::set(LedState newState) {
-        state_ = newState;
-        digitalWrite(pin_, (state_ == LedState::kOn) ? HIGH : LOW);
-    }
-
-    Led led(LedConfig::kPin);
-
+Led led(LedConfig::kPin);
 }  // namespace
 
 void setup() {
