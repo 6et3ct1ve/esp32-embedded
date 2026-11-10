@@ -5,16 +5,20 @@
 #include <iterator>
 
 namespace {
+    
+constexpr uint32_t kStackSizeBytes = 2048;
+constexpr UBaseType_t kLedBlinkPriority = 1;
 
 struct BlinkConfig {
     uint8_t pin = 0;
     uint32_t intervalMs = 0;
+    const char* name = nullptr;
 };
 
 constexpr BlinkConfig kBlinkConfigs[] = {
-    {.pin = 16, .intervalMs = 200},
-    {.pin = 17, .intervalMs = 500},
-    {.pin = 18, .intervalMs = 1000},
+    {.pin = 16, .intervalMs = 200, .name = "blinkRed"},
+    {.pin = 17, .intervalMs = 500, .name = "blinkYellow"},
+    {.pin = 18, .intervalMs = 1000, .name = "blinkWhite"},
 };
 
 enum class LedState : uint8_t { kOff, kOn };
@@ -47,6 +51,7 @@ void Led::set(LedState newState) {
 struct BlinkTaskParams {
     Led* led = nullptr;
     uint32_t intervalMs = 0;
+    const char* name = nullptr;
 };
 
 Led leds[] = {
@@ -57,9 +62,9 @@ Led leds[] = {
 static_assert(std::size(leds) == std::size(kBlinkConfigs));
 
 BlinkTaskParams blinkTaskParams[] = {
-    {.led = &leds[0], .intervalMs = kBlinkConfigs[0].intervalMs},
-    {.led = &leds[1], .intervalMs = kBlinkConfigs[1].intervalMs},
-    {.led = &leds[2], .intervalMs = kBlinkConfigs[2].intervalMs},
+    {.led = &leds[0], .intervalMs = kBlinkConfigs[0].intervalMs, .name = kBlinkConfigs[0].name},
+    {.led = &leds[1], .intervalMs = kBlinkConfigs[1].intervalMs, .name = kBlinkConfigs[1].name},
+    {.led = &leds[2], .intervalMs = kBlinkConfigs[2].intervalMs, .name = kBlinkConfigs[2].name},
 };
 static_assert(std::size(blinkTaskParams) == std::size(kBlinkConfigs));
 
