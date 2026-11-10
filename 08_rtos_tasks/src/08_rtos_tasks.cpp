@@ -5,7 +5,8 @@
 #include <iterator>
 
 namespace {
-    
+
+constexpr uint32_t kSerialBaudRate = 115200;
 constexpr uint32_t kStackSizeBytes = 2048;
 constexpr UBaseType_t kLedBlinkPriority = 1;
 
@@ -83,9 +84,17 @@ void blinkTask(void* params) {
 }  // namespace
 
 void setup() {
+    Serial.begin(kSerialBaudRate);
     for (auto& led : leds) {
         led.init();
     }
+    for (auto& params : blinkTaskParams) {
+        BaseType_t result = xTaskCreate(blinkTask, params.name, kStackSizeBytes, &params, kLedBlinkPriority, nullptr);
+        if (result != pdPASS) {
+            Serial.printf("Failed to create task %s\n", params.name);
+        }
+    }
+    vTaskDelete(nullptr);
 }
 
 void loop() {
