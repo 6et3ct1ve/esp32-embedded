@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <cstdint>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <iterator>
 
 namespace {
@@ -60,6 +62,18 @@ BlinkTaskParams blinkTaskParams[] = {
     {.led = &leds[2], .intervalMs = kBlinkConfigs[2].intervalMs},
 };
 static_assert(std::size(blinkTaskParams) == std::size(kBlinkConfigs));
+
+void blinkTask(void* params) {
+    auto* taskParams = static_cast<BlinkTaskParams*>(params);
+    TickType_t lastWake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(taskParams->intervalMs);
+    while (true) {
+        taskParams->led->set(LedState::kOn);
+        vTaskDelayUntil(&lastWake, period);
+        taskParams->led->set(LedState::kOff);
+        vTaskDelayUntil(&lastWake, period);
+    }
+}
 
 }  // namespace
 
