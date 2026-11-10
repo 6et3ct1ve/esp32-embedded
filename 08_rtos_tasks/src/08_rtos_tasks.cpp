@@ -5,8 +5,8 @@
 namespace {
 
 struct BlinkConfig {
-    uint8_t pin;
-    uint32_t intervalMs;
+    uint8_t pin = 0;
+    uint32_t intervalMs = 0;
 };
 
 constexpr BlinkConfig kBlinkConfigs[] = {
@@ -42,50 +42,32 @@ void Led::set(LedState newState) {
     digitalWrite(pin_, (state_ == LedState::kOn) ? HIGH : LOW);
 }
 
-class Blinker {
-public:
-    explicit Blinker(BlinkConfig config)
-        : led_(config.pin), intervalMs_(config.intervalMs) {}
-
-    void init();
-    void update(uint32_t nowMs);
-
-private:
-    Led led_;
-    const uint32_t intervalMs_;
-    uint32_t lastToggleMs_ = 0;
+struct BlinkTaskParams {
+    Led* led = nullptr;
+    uint32_t intervalMs = 0;
 };
 
-void Blinker::init() {
-    led_.init();
-    lastToggleMs_ = millis();
-}
-
-void Blinker::update(uint32_t nowMs) {
-    if (nowMs - lastToggleMs_ >= intervalMs_) {
-        lastToggleMs_ += intervalMs_;
-        led_.set((led_.state() == LedState::kOn) ? LedState::kOff : LedState::kOn);
-    }
-}
-
-Blinker blinkers[] = {
-    Blinker{kBlinkConfigs[0]},
-    Blinker{kBlinkConfigs[1]},
-    Blinker{kBlinkConfigs[2]},
+Led leds[] = {
+    Led(kBlinkConfigs[0].pin),
+    Led(kBlinkConfigs[1].pin),
+    Led(kBlinkConfigs[2].pin),
 };
-static_assert(std::size(blinkers) == std::size(kBlinkConfigs));
+static_assert(std::size(leds) == std::size(kBlinkConfigs));
+
+BlinkTaskParams blinkTaskParams[] = {
+    {.led = &leds[0], .intervalMs = kBlinkConfigs[0].intervalMs},
+    {.led = &leds[1], .intervalMs = kBlinkConfigs[1].intervalMs},
+    {.led = &leds[2], .intervalMs = kBlinkConfigs[2].intervalMs},
+};
+static_assert(std::size(blinkTaskParams) == std::size(kBlinkConfigs));
 
 }  // namespace
 
 void setup() {
-    for (auto& blinker : blinkers) {
-        blinker.init();
+    for (auto& led : leds) {
+        led.init();
     }
 }
 
 void loop() {
-    const uint32_t nowMs = millis();
-    for (auto& blinker : blinkers) {
-        blinker.update(nowMs);
-    }
 }
