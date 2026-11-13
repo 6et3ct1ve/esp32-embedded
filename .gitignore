@@ -21,4 +21,5 @@ compile_commands.json
 .DS_Store
 Thumbs.db
 *.swp
+desktop.ini
 *~
