@@ -1,1 +1,24 @@
-.pio
+# PlatformIO
+.pio/
+
+# VS Code
+**/.vscode/*
+!/.vscode/extensions.json
+
+# ESP-IDF
+build/
+sdkconfig.old
+managed_components/
+
+# Reports
+*.docx
+
+# Clangd
+.cache/
+compile_commands.json
+
+# OS and editors
+.DS_Store
+Thumbs.db
+*.swp
+*~
