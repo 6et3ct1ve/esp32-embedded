@@ -3,11 +3,11 @@
 
 namespace {
 
-    constexpr uint8_t kLdrPin = 6;
-    constexpr float kAdcMax = 4095.0f;
-    constexpr float kVrefMv = 3100.0f;
-    constexpr uint32_t kSampleIntervalMs = 100;
-    constexpr uint32_t kSerialBaud = 115200;
+constexpr uint8_t kLdrPin = 6;
+constexpr float kAdcMax = 4095.0f;
+constexpr float kVrefMv = 3100.0f;
+constexpr uint32_t kSampleIntervalMs = 100;
+constexpr uint32_t kSerialBaud = 115200;
 
 }  // namespace
 

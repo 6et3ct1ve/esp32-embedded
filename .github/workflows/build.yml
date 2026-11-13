@@ -1,0 +1,108 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    name: Find changed projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.find.outputs.projects }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: List project folders
+        id: find
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          all=$(ls -d [0-9][0-9]_*/platformio.ini | xargs -n1 dirname)
+
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA" ;;
+            push) base="$PUSH_BEFORE_SHA" ;;
+            *) base="" ;;
+          esac
+
+          # Manual run or unknown base: build everything.
+          if [ -z "$base" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            selected="$all"
+          else
+            changed=$(git diff --name-only "$base" HEAD)
+            # Shared config affects every project.
+            if echo "$changed" | grep -qE '^(\.github/|\.clang-format$|\.clang-tidy$)'; then
+              selected="$all"
+            else
+              selected=$(echo "$changed" | cut -d/ -f1 | sort -u | grep -Fxf <(echo "$all") || true)
+            fi
+          fi
+
+          projects=$(echo "$selected" | sed '/^$/d' | jq -R . | jq -sc .)
+          echo "projects=${projects}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.project }}
+    needs: discover
+    if: needs.discover.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.discover.outputs.projects) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
+
+      - name: Install PlatformIO
+        run: pip install platformio==6.2.0
+
+      - name: Build
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: pio run -d "$PROJECT"
+
+  build-result:
+    name: Build result
+    needs: [discover, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          DISCOVER: ${{ needs.discover.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          echo "discover: $DISCOVER, build: $BUILD"
+          [ "$DISCOVER" = "success" ]
+          [ "$BUILD" = "success" ] || [ "$BUILD" = "skipped" ]

@@ -1,0 +1,18 @@
+# Base system: TLS certs, downloads, locale, timezone, VCS.
+ca-certificates
+curl
+locales
+tzdata
+git
+
+# Python runtime for PlatformIO and pre-commit (installed in a venv).
+python3
+python3-venv
+
+# C/C++ formatting, linting and editor language server.
+clang-format
+clang-tidy
+clangd
+
+# Host compiler for native unit tests (pio test -e native).
+g++
