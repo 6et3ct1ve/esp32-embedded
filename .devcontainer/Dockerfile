@@ -55,7 +55,8 @@ USER ${CONTAINER_USER}
 # PlatformIO and pre-commit in a user venv (Ubuntu blocks system-wide pip, PEP 668).
 ARG PLATFORMIO_VERSION=6.2.0
 ARG PRE_COMMIT_VERSION=4.7.0
-RUN python3 -m venv ~/.venv && \
+RUN mkdir -p ~/.platformio && \
+    python3 -m venv ~/.venv && \
     ~/.venv/bin/pip install --no-cache-dir platformio==${PLATFORMIO_VERSION} pre-commit==${PRE_COMMIT_VERSION}
 ENV PATH="/home/${CONTAINER_USER}/.venv/bin:${PATH}"
 
