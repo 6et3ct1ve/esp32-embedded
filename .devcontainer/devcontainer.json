@@ -1,0 +1,41 @@
+{
+  // Name shown in the VS Code Dev Containers UI.
+  "name": "ESP32 Embedded",
+  
+  // Image built from the local Dockerfile; the container user matches
+  // the host user so bind-mounted files keep their ownership.
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "CONTAINER_USER": "${localEnv:USER}"
+      }
+    },
+
+  // Open the container as the host user to avoid file ownership issues.
+  "remoteUser": "${localEnv:USER}",
+
+  // Mount the repo at the same path as on the host.
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localEnv:HOME}/${localWorkspaceFolderBasename},type=bind",
+  "workspaceFolder": "${localEnv:HOME}/${localWorkspaceFolderBasename}",
+
+  // Named volume keeps PlatformIO toolchains between container rebuilds.
+  "mounts": [
+    "source=platformio-cache,target=/home/${localEnv:USER}/.platformio,type=volume"
+  ],
+
+  // Settings below apply only to the VS Code session inside the container.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "platformio.platformio-ide",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        // Use PlatformIO Core from the image venv, not a second bundled copy.
+        "platformio-ide.useBuiltinPIOCore": false,
+        // Format with the image's clang-format, the same version as CI.
+        "C_Cpp.clang_format_path": "/usr/bin/clang-format"
+      }
+    }
+  }
+}
