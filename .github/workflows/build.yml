@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   discover:
-    name: Find PlatformIO projects
+    name: Find changed projects
     runs-on: ubuntu-latest
     outputs:
       projects: ${{ steps.find.outputs.projects }}
@@ -24,17 +24,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: List project folders
         id: find
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
-          projects=$(ls -d [0-9][0-9]_*/platformio.ini | xargs -n1 dirname | jq -R . | jq -sc .)
+          all=$(ls -d [0-9][0-9]_*/platformio.ini | xargs -n1 dirname)
+
+          case "$EVENT_NAME" in
+            pull_request) base="$PR_BASE_SHA" ;;
+            push) base="$PUSH_BEFORE_SHA" ;;
+            *) base="" ;;
+          esac
+
+          # Manual run or unknown base: build everything.
+          if [ -z "$base" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            selected="$all"
+          else
+            changed=$(git diff --name-only "$base" HEAD)
+            # Shared config affects every project.
+            if echo "$changed" | grep -qE '^(\.github/|\.clang-format$|\.clang-tidy$)'; then
+              selected="$all"
+            else
+              selected=$(echo "$changed" | cut -d/ -f1 | sort -u | grep -Fxf <(echo "$all") || true)
+            fi
+          fi
+
+          projects=$(echo "$selected" | sed '/^$/d' | jq -R . | jq -sc .)
           echo "projects=${projects}" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.project }}
     needs: discover
+    if: needs.discover.outputs.projects != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -64,3 +91,18 @@ jobs:
         env:
           PROJECT: ${{ matrix.project }}
         run: pio run -d "$PROJECT"
+
+  build-result:
+    name: Build result
+    needs: [discover, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          DISCOVER: ${{ needs.discover.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          echo "discover: $DISCOVER, build: $BUILD"
+          [ "$DISCOVER" = "success" ]
+          [ "$BUILD" = "success" ] || [ "$BUILD" = "skipped" ]
