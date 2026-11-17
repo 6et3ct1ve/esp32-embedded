@@ -92,6 +92,22 @@ jobs:
           PROJECT: ${{ matrix.project }}
         run: pio run -d "$PROJECT"
 
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-tidy
+
+      - name: Static analysis (cppcheck)
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: pio check -d "$PROJECT" --fail-on-defect high
+
+      - name: Static analysis (clang-tidy)
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          pio run -t compiledb -d "$PROJECT"
+          python3 scripts/tidy_cdb.py "$PROJECT/compile_commands.json" "$PROJECT/.pio/tidy"
+          run-clang-tidy -quiet -p "$PROJECT/.pio/tidy"
+
   build-result:
     name: Build result
     needs: [discover, build]
