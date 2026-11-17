@@ -55,11 +55,12 @@ RUN if id ubuntu >/dev/null 2>&1; then \
 # unprivileged user, not root.
 USER ${CONTAINER_USER}
 
-# PlatformIO and pre-commit in a user venv (Ubuntu blocks system-wide pip, PEP 668).
-ARG PLATFORMIO_VERSION=6.2.0
-ARG PRE_COMMIT_VERSION=4.7.0
+# PlatformIO and pre-commit in a user venv (Ubuntu blocks system-wide pip, PEP 668),
+# installed from a hash-pinned lock (regenerate with pip-compile from requirements.in).
+COPY --chown=${CONTAINER_USER} requirements.txt /tmp/requirements.txt
 RUN mkdir -p ~/.platformio && \
     python3 -m venv ~/.venv && \
-    ~/.venv/bin/pip install --no-cache-dir platformio==${PLATFORMIO_VERSION} pre-commit==${PRE_COMMIT_VERSION}
+    ~/.venv/bin/pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
 ENV PATH="/home/${CONTAINER_USER}/.venv/bin:${PATH}"
 

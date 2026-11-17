@@ -17,7 +17,7 @@ concurrency:
 jobs:
   discover:
     name: Find changed projects
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       projects: ${{ steps.find.outputs.projects }}
     steps:
@@ -48,7 +48,7 @@ jobs:
           else
             changed=$(git diff --name-only "$base" HEAD)
             # Shared config affects every project.
-            if echo "$changed" | grep -qE '^(\.github/|\.clang-format$|\.clang-tidy$)'; then
+            if echo "$changed" | grep -qE '^(\.github/|scripts/|\.devcontainer/requirements\.txt$|\.clang-format$|\.clang-tidy$)'; then
               selected="$all"
             else
               selected=$(echo "$changed" | cut -d/ -f1 | sort -u | grep -Fxf <(echo "$all") || true)
@@ -62,7 +62,7 @@ jobs:
     name: Build ${{ matrix.project }}
     needs: discover
     if: needs.discover.outputs.projects != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -85,7 +85,7 @@ jobs:
           key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
 
       - name: Install PlatformIO
-        run: pip install platformio==6.2.0
+        run: pip install --require-hashes -r .devcontainer/requirements.txt
 
       - name: Build
         env:
@@ -112,7 +112,7 @@ jobs:
     name: Build result
     needs: [discover, build]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check results
         env:
