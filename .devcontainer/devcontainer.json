@@ -1,7 +1,7 @@
 {
   // Name shown in the VS Code Dev Containers UI.
   "name": "ESP32 Embedded",
-  
+
   // Image built from the local Dockerfile; the container user matches
   // the host user so bind-mounted files keep their ownership.
   "build": {

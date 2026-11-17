@@ -63,4 +63,3 @@ RUN mkdir -p ~/.platformio && \
     ~/.venv/bin/pip install --no-cache-dir --require-hashes -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
 ENV PATH="/home/${CONTAINER_USER}/.venv/bin:${PATH}"
-
