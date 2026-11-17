@@ -7,6 +7,9 @@
 #   docker inspect --format='{{index .RepoDigests 0}}' ubuntu:noble
 FROM ubuntu:noble@sha256:2198e4c65076e9cb0b3d695219df667c0e3b0072da64ca3c2648aca17dcecaf5
 
+# Fail RUN steps when any command in a pipe fails, not only the last one.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Keep apt from waiting for interactive prompts during build.
 ARG DEBIAN_FRONTEND="noninteractive"
 
