@@ -106,7 +106,7 @@ jobs:
         run: |
           pio run -t compiledb -d "$PROJECT"
           python3 scripts/tidy_cdb.py "$PROJECT/compile_commands.json" "$PROJECT/.pio/tidy"
-          run-clang-tidy -quiet -p "$PROJECT/.pio/tidy"
+          run-clang-tidy-18 -quiet -p "$PROJECT/.pio/tidy"
 
   build-result:
     name: Build result
