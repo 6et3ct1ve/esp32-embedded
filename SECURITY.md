@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Report privately via **Security → Report a vulnerability** on GitHub. Do not open a public issue.
+Report privately via [GitHub Security Advisories](https://github.com/6et3ct1ve/esp32-embedded/security/advisories/new). Do not open a public issue.
 
 ## Scope
 
