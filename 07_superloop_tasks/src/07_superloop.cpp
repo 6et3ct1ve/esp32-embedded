@@ -22,6 +22,9 @@ public:
     explicit Led(uint8_t pin) : pin_(pin) {}
     Led(const Led&) = delete;
     Led& operator=(const Led&) = delete;
+    Led(Led&&) = delete;
+    Led& operator=(Led&&) = delete;
+    ~Led() = default;
 
     void init();
     void set(LedState newState);
