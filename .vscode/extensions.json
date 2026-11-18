@@ -1,0 +1,7 @@
+{
+  // Host only: open the repo in the devcontainer. Project tools are
+  // installed inside the container by .devcontainer/devcontainer.json.
+  "recommendations": [
+    "ms-vscode-remote.remote-containers"
+  ]
+}

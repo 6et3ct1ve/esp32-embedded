@@ -1,0 +1,10 @@
+# Normalize text files to LF so the projects behave the same on
+# Linux, macOS and Windows+WSL.
+* text=auto eol=lf
+
+# Binary assets skip text normalization and diffs.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.sr binary
