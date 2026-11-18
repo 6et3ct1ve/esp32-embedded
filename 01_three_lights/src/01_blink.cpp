@@ -4,9 +4,7 @@ constexpr uint8_t kRedBlue = 15;
 constexpr uint8_t kGreen = 17;
 constexpr uint32_t kSpeedTwoCoeff = 2;
 
-enum class RedBlueState : uint8_t {
-    kOff, kRed, kBlue
-};
+enum class RedBlueState : uint8_t { kOff, kRed, kBlue };
 
 struct LedStep {
     RedBlueState redBlue = RedBlueState::kOff;
