@@ -44,8 +44,7 @@ void Led::set(LedState newState) {
 
 class Blinker {
 public:
-    explicit Blinker(BlinkConfig config)
-        : led_(config.pin), intervalMs_(config.intervalMs) {}
+    explicit Blinker(BlinkConfig config) : led_(config.pin), intervalMs_(config.intervalMs) {}
 
     void init();
     void update(uint32_t nowMs);
