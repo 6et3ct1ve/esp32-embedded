@@ -7,7 +7,9 @@
 
 # ESP-IDF
 build/
-sdkconfig.old
+sdkconfig
+sdkconfig.*
+!sdkconfig.defaults
 managed_components/
 
 # Reports

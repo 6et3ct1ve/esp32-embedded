@@ -54,3 +54,5 @@ CheckOptions:
     value: CamelCase
   - key: readability-identifier-naming.ConstexprVariablePrefix
     value: k
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    value: '^app_main$'
