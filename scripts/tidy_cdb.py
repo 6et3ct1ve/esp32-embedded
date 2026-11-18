@@ -12,10 +12,19 @@ TARGET = ["--target=i686-unknown-none-elf", "-U__i386__",
           "-mlong-double-64", "-funsigned-char", "-fshort-wchar",
           "-Wno-unknown-warning-option", "-nostdinc"]
 
-def resolve(gcc):
-    # PlatformIO writes a bare compiler name; its toolchains live in ~/.platformio/packages.
-    pio_bins = Path(os.environ.get("PLATFORMIO_CORE_DIR", Path.home() / ".platformio")).glob("packages/toolchain-*/bin")
-    found = shutil.which(gcc, path=os.pathsep.join([*map(str, pio_bins), os.environ.get("PATH", "")]))
+@cache
+def project_compilers(project):
+    # PlatformIO knows the exact compiler of the project's toolchain. The compile DB only
+    # has a bare name, and several toolchains (Arduino GCC 8, ESP-IDF GCC 15) share it.
+    out = subprocess.run(["pio", "project", "metadata", "-d", str(project), "--json-output"],
+                         capture_output=True, text=True, check=True).stdout
+    meta = json.loads(next(line for line in reversed(out.splitlines()) if line.startswith("{")))
+    return {Path(p).name: p for env in meta.values() for p in (env["cc_path"], env["cxx_path"]) if p}
+
+def resolve(gcc, project):
+    if os.path.isabs(gcc):
+        return gcc
+    found = project_compilers(project).get(Path(gcc).name)
     if not found:
         sys.exit(f"compiler not found: {gcc}")
     return found
@@ -50,9 +59,9 @@ def expand_response_files(args, directory):
             out.append(a)
     return out
 
-def fix(args, directory, is_c):
+def fix(args, directory, is_c, project):
     lang = "c" if is_c else "c++"
-    gcc, rest = resolve(args[0]), expand_response_files(args[1:], directory)
+    gcc, rest = resolve(args[0], project), expand_response_files(args[1:], directory)
     keep, skip = [], False
     specs = tuple(a for a in rest if a.startswith(("-specs=", "--specs=")))
     for a in rest:
@@ -82,7 +91,7 @@ for e in json.loads(src.read_text()):
     if path.suffix not in C_EXT | CXX_EXT:
         continue
     args = e.pop("arguments", None) or shlex.split(e.pop("command"))
-    e["arguments"] = fix(args, e["directory"], path.suffix in C_EXT)
+    e["arguments"] = fix(args, e["directory"], path.suffix in C_EXT, project)
     db.append(e)
 dst.mkdir(parents=True, exist_ok=True)
 (dst / "compile_commands.json").write_text(json.dumps(db, indent=1))
