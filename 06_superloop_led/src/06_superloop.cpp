@@ -123,7 +123,7 @@ void loop() {
     iterationCount++;
 
     if (iterationCount >= ProfilingConfig::kReportEveryIterations) {
-        const float averageLoopTimeUs = static_cast<float>(totalLoopTimeUs) / iterationCount;
+        const float averageLoopTimeUs = static_cast<float>(totalLoopTimeUs) / static_cast<float>(iterationCount);
         Serial.printf("Average loop time: %.2f us\n", averageLoopTimeUs);
         totalLoopTimeUs = 0;
         iterationCount = 0;
