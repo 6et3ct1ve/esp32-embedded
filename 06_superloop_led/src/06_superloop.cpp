@@ -24,7 +24,7 @@ enum class LedState : uint8_t { kOff, kOn };
 enum class LedMode : uint8_t { kBlink, kOn, kOff };
 
 LedMode nextMode(LedMode current) {
-    switch(current){
+    switch (current) {
         case LedMode::kBlink:
             return LedMode::kOn;
         case LedMode::kOn:
@@ -64,9 +64,7 @@ Led led(LedConfig::kPin);
 std::atomic<bool> buttonPressed{false};
 static_assert(std::atomic<bool>::is_always_lock_free);
 
-void IRAM_ATTR buttonIsr() {
-    buttonPressed.store(true);
-}
+void IRAM_ATTR buttonIsr() { buttonPressed.store(true); }
 
 }  // namespace
 
@@ -85,7 +83,7 @@ void loop() {
     static bool pendingButtonPress = false;
     static uint32_t lastEdgeMs = 0;
     const uint32_t currentMs = millis();
-    
+
     if (buttonPressed.exchange(false)) {
         pendingButtonPress = true;
         lastEdgeMs = currentMs;
@@ -114,7 +112,7 @@ void loop() {
         case LedMode::kOff:
             led.set(LedState::kOff);
             break;
-        }
+    }
 
     static uint32_t totalLoopTimeUs = 0;
     static uint32_t iterationCount = 0;
