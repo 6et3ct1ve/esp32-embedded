@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <cstdint>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <cstdint>
 #include <iterator>
 
 namespace {
@@ -97,5 +97,4 @@ void setup() {
     vTaskDelete(nullptr);
 }
 
-void loop() {
-}
+void loop() {}
