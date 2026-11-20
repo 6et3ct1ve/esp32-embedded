@@ -27,7 +27,11 @@ static void sensorReaderTask(void *params) {
     }
 }
 
-static void workerTask(void *params) { (void)params; }
+static void workerTask(void *params) {
+    (void)params;
+    printf("[Worker] Processing event...\n");
+    vTaskDelete(NULL);
+}
 
 static void createTask(TaskFunction_t taskFunction, const char *taskName, uint32_t stackSizeBytes, void *params,
                        UBaseType_t priority, TaskHandle_t *taskHandle) {
