@@ -41,7 +41,14 @@ static void createTask(TaskFunction_t taskFunction, const char *taskName, uint32
     }
 }
 
-static void eventTriggerTask(void *params) { (void)params; }
+static void eventTriggerTask(void *params) {
+    (void)params;
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(kEventTriggerDelayMs));
+        printf("[Event] Triggered...\n");
+        createTask(workerTask, "Worker", kTaskStackSizeBytes, NULL, kHighPriority, NULL);
+    }
+}
 
 static void maintenanceModeTask(void *params) { (void)params; }
 
