@@ -34,7 +34,13 @@
         // Use PlatformIO Core from the image venv, not a second bundled copy.
         "platformio-ide.useBuiltinPIOCore": false,
         // Format with the image's clang-format, the same version as CI.
-        "C_Cpp.clang_format_path": "/usr/bin/clang-format"
+        "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+        // Keep IntelliSense on even if a user setting disabled it.
+        "C_Cpp.intelliSenseEngine": "default",
+        // Clang-ready compile DB from scripts/tidy_cdb.py: explicit toolchain headers.
+        "C_Cpp.default.compileCommands": [
+          "${workspaceFolder}/09_task_lifecycle/.pio/tidy/compile_commands.json"
+        ]
       }
     }
   }
