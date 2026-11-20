@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
@@ -16,7 +17,15 @@ static const UBaseType_t kRealtimePriority = tskIDLE_PRIORITY + 5;
 
 static TaskHandle_t sensorTaskHandle = NULL;
 
-static void sensorReaderTask(void *params) { (void)params; }
+static void sensorReaderTask(void *params) {
+    (void)params;
+    TickType_t lastWake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(kSensorPeriodMs);
+    while (true) {
+        printf("[Sensor] Data read...\n");
+        vTaskDelayUntil(&lastWake, period);
+    }
+}
 
 static void workerTask(void *params) { (void)params; }
 
