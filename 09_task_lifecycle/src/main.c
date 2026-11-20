@@ -50,7 +50,23 @@ static void eventTriggerTask(void *params) {
     }
 }
 
-static void maintenanceModeTask(void *params) { (void)params; }
+static void maintenanceModeTask(void *params) {
+    (void)params;
+    if (sensorTaskHandle == NULL) {
+        printf("[Maintenance] Sensor task missing, stopping...\n");
+        vTaskDelete(NULL);
+    }
+    TickType_t lastWake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(kMaintenancePeriodMs);
+    while (true) {
+        vTaskDelayUntil(&lastWake, period);
+        vTaskSuspend(sensorTaskHandle);
+        printf("[Maintenance] System paused for 2 seconds...\n");
+        vTaskDelay(pdMS_TO_TICKS(kMaintenancePauseMs));
+        printf("[Maintenance] Resuming sensor task...\n");
+        vTaskResume(sensorTaskHandle);
+    }
+}
 
 void app_main(void) {
     createTask(eventTriggerTask, "Event", kTaskStackSizeBytes, NULL, kLowPriority, NULL);
