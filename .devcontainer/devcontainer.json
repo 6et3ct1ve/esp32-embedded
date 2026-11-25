@@ -14,9 +14,10 @@
   // Open the container as the host user to avoid file ownership issues.
   "remoteUser": "${localEnv:USER}",
 
-  // Mount the repo at the same path as on the host.
-  "workspaceMount": "source=${localWorkspaceFolder},target=${localEnv:HOME}/${localWorkspaceFolderBasename},type=bind",
-  "workspaceFolder": "${localEnv:HOME}/${localWorkspaceFolderBasename}",
+  // Mount the repo at its host path: ESP-IDF's CMake cache stores absolute paths,
+  // so builds made here stay valid for flashing from the host.
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
+  "workspaceFolder": "${localWorkspaceFolder}",
 
   // Named volume keeps PlatformIO toolchains between container rebuilds.
   "mounts": [
@@ -33,13 +34,15 @@
       "settings": {
         // Use PlatformIO Core from the image venv, not a second bundled copy.
         "platformio-ide.useBuiltinPIOCore": false,
+        // Skip PIO Home: its web server times out in the container and is not needed.
+        "platformio-ide.disablePIOHomeStartup": true,
         // Format with the image's clang-format, the same version as CI.
         "C_Cpp.clang_format_path": "/usr/bin/clang-format",
         // Keep IntelliSense on even if a user setting disabled it.
         "C_Cpp.intelliSenseEngine": "default",
-        // Clang-ready compile DB from scripts/tidy_cdb.py: explicit toolchain headers.
+        // One clang-ready compile DB for all projects, built by scripts/ide_cdb.py.
         "C_Cpp.default.compileCommands": [
-          "${workspaceFolder}/09_task_lifecycle/.pio/tidy/compile_commands.json"
+          "${workspaceFolder}/compile_commands.json"
         ]
       }
     }
