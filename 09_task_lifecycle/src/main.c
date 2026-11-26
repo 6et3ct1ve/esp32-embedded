@@ -4,7 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-static const uint32_t kTaskStackSizeBytes = 2048;
+static const uint32_t kTaskStackSizeBytes = 3072;
 static const uint32_t kSensorPeriodMs = 500;
 static const uint32_t kMaintenancePeriodMs = 10000;
 static const uint32_t kMaintenancePauseMs = 2000;
