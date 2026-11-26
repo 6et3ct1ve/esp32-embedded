@@ -29,6 +29,7 @@ static void sensorReaderTask(void *params) {
         const TickType_t late = xTaskGetTickCount() - lastWake;
         if (late >= period) {
             lastWake = xTaskGetTickCount() - (late % period);
+            printf("[Sensor] Slot skipped...\n");
             continue;
         }
         printf("[Sensor] Data read...\n");
