@@ -25,8 +25,13 @@ static void sensorReaderTask(void *params) {
     TickType_t lastWake = xTaskGetTickCount();
     const TickType_t period = pdMS_TO_TICKS(kSensorPeriodMs);
     while (true) {
+        xTaskDelayUntil(&lastWake, period);
+        const TickType_t late = xTaskGetTickCount() - lastWake;
+        if (late >= period) {
+            lastWake = xTaskGetTickCount() - (late % period);
+            continue;
+        }
         printf("[Sensor] Data read...\n");
-        vTaskDelayUntil(&lastWake, period);
     }
 }
 
