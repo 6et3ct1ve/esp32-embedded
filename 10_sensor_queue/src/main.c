@@ -28,6 +28,24 @@ typedef struct {
     TickType_t timestampTicks;
 } SensorReading;
 
+typedef struct {
+    SensorId sensor;
+    uint32_t periodMs;
+    UBaseType_t priority;
+    const char* name;
+} ProducerConfig;
+
+static const ProducerConfig kProducerConfigs[] = {
+    {.sensor = kSensorFirst,
+     .periodMs = kFirstProducerPeriodMs,
+     .priority = kFirstProducerPriority,
+     .name = "ProducerFirst"},
+    {.sensor = kSensorSecond,
+     .periodMs = kSecondProducerPeriodMs,
+     .priority = kSecondProducerPriority,
+     .name = "ProducerSecond"},
+};
+
 static QueueHandle_t sensorQueueHandle = NULL;
 
 void app_main(void) {}
