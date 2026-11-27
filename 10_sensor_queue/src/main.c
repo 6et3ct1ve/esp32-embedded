@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 
 static const uint32_t kTaskStackSizeBytes = 3072;
@@ -26,5 +27,7 @@ typedef struct {
     uint8_t value;
     TickType_t timestampTicks;
 } SensorReading;
+
+static QueueHandle_t sensorQueueHandle = NULL;
 
 void app_main(void) {}
