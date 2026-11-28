@@ -71,7 +71,7 @@ static void producerTask(void* params) {
             .value = (uint8_t)esp_random(),
             .timestampTicks = xTaskGetTickCount(),
         };
-        seq++;
+        ++seq;
         const BaseType_t result = xQueueSend(sensorQueueHandle, &reading, pdMS_TO_TICKS(kProducerTimeoutMs));
         if (result != pdPASS) {
             printf("[%s] Queue full, reading dropped...\n", config->name);
