@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "esp_random.h"
 #include "freertos/FreeRTOS.h"
@@ -66,8 +67,8 @@ static void producerTask(void* params) {
     }
 }
 
-static const char* sensorName(SensorId id) {
-    switch (id) {
+static const char* sensorName(SensorId sensorId) {
+    switch (sensorId) {
         case kSensorFirst:
             return "First";
         case kSensorSecond:
@@ -85,9 +86,30 @@ static void consumerTask(void* params) {
             printf("[Consumer] No data for %" PRIu32 " ms...\n", kConsumerTimeoutMs);
             continue;
         }
-        printf("[Consumer] Sensor %s: value %" PRIu8 ", read at %" PRIu32 " ms\n", sensorName(reading.sensor),
+        printf("[Consumer] Sensor %s: value %" PRIu8 ", read at %" PRIu32 " ms...\n", sensorName(reading.sensor),
                reading.value, pdTICKS_TO_MS(reading.timestampTicks));
     }
 }
 
-void app_main(void) {}
+static void createTask(TaskFunction_t taskFunction, const char* taskName, uint32_t stackSizeBytes, void* params,
+                       UBaseType_t priority, TaskHandle_t* taskHandle) {
+    const BaseType_t result =
+        xTaskCreatePinnedToCore(taskFunction, taskName, stackSizeBytes, params, priority, taskHandle, kAppCore);
+    if (result != pdPASS) {
+        printf("Failed to create task %s...\n", taskName);
+    }
+}
+
+void app_main(void) {
+    sensorQueueHandle = xQueueCreate(kQueueLength, sizeof(SensorReading));
+    if (sensorQueueHandle == NULL) {
+        printf("Failed to create sensor queue...\n");
+        return;
+    }
+    createTask(consumerTask, "Consumer", kTaskStackSizeBytes, NULL, kConsumerPriority, NULL);
+    const size_t producerCount = sizeof(kProducerConfigs) / sizeof(kProducerConfigs[0]);
+    for (size_t i = 0; i < producerCount; ++i) {
+        createTask(producerTask, kProducerConfigs[i].name, kTaskStackSizeBytes, (void*)&kProducerConfigs[i],
+                   kProducerConfigs[i].priority, NULL);
+    }
+}
