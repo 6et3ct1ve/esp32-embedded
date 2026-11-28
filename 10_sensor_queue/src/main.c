@@ -53,6 +53,7 @@ static const ProducerConfig kProducerConfigs[] = {
                        .name = "ProducerSecond"},
 };
 
+// NOLINTNEXTLINE(readability-implicit-bool-conversion): C comparison yields int
 static_assert(sizeof(kProducerConfigs) / sizeof(kProducerConfigs[0]) == kSensorCount,
               "kProducerConfigs must have one row per sensor");
 
@@ -93,33 +94,29 @@ static const char* sensorName(SensorId sensorId) {
 
 static void consumerTask(void* params) {
     (void)params;
+    // cppcheck assumes uint32_t is unsigned int; on Xtensa it is unsigned long, so PRIu32 ("lu") is correct.
     uint32_t nextSeq[kSensorCount] = {0};
     while (true) {
         SensorReading reading = {0};
         const BaseType_t result = xQueueReceive(sensorQueueHandle, &reading, pdMS_TO_TICKS(kConsumerTimeoutMs));
         if (result != pdPASS) {
-            printf("[Consumer] No data for %" PRIu32 " ms...\n",
-                   kConsumerTimeoutMs);  // cppcheck-suppress invalidPrintfArgType_uint ; uint32_t is unsigned long on
-                                         // Xtensa, PRIu32 is correct
+            // cppcheck-suppress invalidPrintfArgType_uint
+            printf("[Consumer] No data for %" PRIu32 " ms...\n", kConsumerTimeoutMs);
             continue;
         }
         if (reading.sensor >= kSensorCount) {
-            printf("[Consumer] Unknown sensor %d, reading dropped...\n",
-                   reading.sensor);  // cppcheck-suppress invalidPrintfArgType_uint ; uint32_t is unsigned long on
-                                     // Xtensa, PRIu32 is correct
+            printf("[Consumer] Unknown sensor %d, reading dropped...\n", reading.sensor);
             continue;
         }
         if (reading.seq > nextSeq[reading.sensor]) {
+            // cppcheck-suppress invalidPrintfArgType_uint
             printf("[Consumer] Sensor %s: %" PRIu32 " readings lost...\n", sensorName(reading.sensor),
                    reading.seq - nextSeq[reading.sensor]);
         }
         nextSeq[reading.sensor] = reading.seq + 1;
-        printf("[Consumer] Sensor %s: #%" PRIu32 " value %" PRIu8 ", read at %" PRIu32
-               " ms...\n",  // cppcheck-suppress invalidPrintfArgType_uint ; uint32_t is unsigned long on Xtensa, PRIu32
-                            // is correct
-               sensorName(reading.sensor), reading.seq, reading.value,
-               pdTICKS_TO_MS(reading.timestampTicks));  // cppcheck-suppress invalidPrintfArgType_uint ; uint32_t is
-                                                        // unsigned long on Xtensa, PRIu32 is correct
+        // cppcheck-suppress invalidPrintfArgType_uint
+        printf("[Consumer] Sensor %s: #%" PRIu32 " value %" PRIu8 ", read at %" PRIu32 " ms...\n",
+               sensorName(reading.sensor), reading.seq, reading.value, pdTICKS_TO_MS(reading.timestampTicks));
     }
 }
 
