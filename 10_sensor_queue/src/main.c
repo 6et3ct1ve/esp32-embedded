@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "esp_random.h"
@@ -62,6 +63,20 @@ static void producerTask(void* params) {
         if (result != pdPASS) {
             printf("[%s] Queue full, reading dropped...\n", config->name);
         }
+    }
+}
+
+static void consumerTask(void* params) {
+    (void)params;
+    while (true) {
+        SensorReading reading = {0};
+        const BaseType_t result = xQueueReceive(sensorQueueHandle, &reading, pdMS_TO_TICKS(kConsumerTimeoutMs));
+        if (result != pdPASS) {
+            printf("[Consumer] No data for %" PRIu32 " ms...\n", kConsumerTimeoutMs);
+            continue;
+        }
+        printf("[Consumer] Sensor %d: value %" PRIu8 ", read at %" PRIu32 " ms\n", reading.sensor, reading.value,
+               pdTICKS_TO_MS(reading.timestampTicks));
     }
 }
 
