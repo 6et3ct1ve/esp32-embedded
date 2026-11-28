@@ -43,14 +43,14 @@ typedef struct {
 } ProducerConfig;
 
 static const ProducerConfig kProducerConfigs[] = {
-    {.sensor = kSensorFirst,
-     .periodMs = kFirstProducerPeriodMs,
-     .priority = kFirstProducerPriority,
-     .name = "ProducerFirst"},
-    {.sensor = kSensorSecond,
-     .periodMs = kSecondProducerPeriodMs,
-     .priority = kSecondProducerPriority,
-     .name = "ProducerSecond"},
+    [kSensorFirst] = {.sensor = kSensorFirst,
+                      .periodMs = kFirstProducerPeriodMs,
+                      .priority = kFirstProducerPriority,
+                      .name = "ProducerFirst"},
+    [kSensorSecond] = {.sensor = kSensorSecond,
+                       .periodMs = kSecondProducerPeriodMs,
+                       .priority = kSecondProducerPriority,
+                       .name = "ProducerSecond"},
 };
 
 static_assert(sizeof(kProducerConfigs) / sizeof(kProducerConfigs[0]) == kSensorCount,
@@ -132,7 +132,11 @@ void app_main(void) {
     createTask(consumerTask, "Consumer", kTaskStackSizeBytes, NULL, kConsumerPriority, NULL);
     const size_t producerCount = sizeof(kProducerConfigs) / sizeof(kProducerConfigs[0]);
     for (size_t i = 0; i < producerCount; ++i) {
-        createTask(producerTask, kProducerConfigs[i].name, kTaskStackSizeBytes, (void*)&kProducerConfigs[i],
-                   kProducerConfigs[i].priority, NULL);
+        const ProducerConfig* config = &kProducerConfigs[i];
+        if (config->sensor != (SensorId)i || config->name == NULL) {
+            printf("Invalid producer config at row %zu...\n", i);
+            continue;
+        }
+        createTask(producerTask, config->name, kTaskStackSizeBytes, (void*)config, config->priority, NULL);
     }
 }
