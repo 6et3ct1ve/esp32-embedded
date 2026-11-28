@@ -1,4 +1,6 @@
+#include <stdbool.h>
 #include <stdint.h>
+#include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
@@ -47,5 +49,20 @@ static const ProducerConfig kProducerConfigs[] = {
 };
 
 static QueueHandle_t sensorQueueHandle = NULL;
+
+static void producerTask(void* params) {
+    const ProducerConfig* config = params;
+    TickType_t lastWake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(config->periodMs);
+    while (true) {
+        xTaskDelayUntil(&lastWake, period);
+        const SensorReading reading = {
+            .sensor = config->sensor, .value = (uint8_t)esp_random(), .timestampTicks = xTaskGetTickCount()};
+        const BaseType_t result = xQueueSend(sensorQueueHandle, &reading, pdMS_TO_TICKS(kProducerTimeoutMs));
+        if (result != pdPASS) {
+            printf("[%s] Queue full, reading dropped...\n", config->name);
+        }
+    }
+}
 
 void app_main(void) {}
