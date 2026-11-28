@@ -66,6 +66,16 @@ static void producerTask(void* params) {
     }
 }
 
+static const char* sensorName(SensorId id) {
+    switch (id) {
+        case kSensorFirst:
+            return "First";
+        case kSensorSecond:
+            return "Second";
+    }
+    return "Unknown";
+}
+
 static void consumerTask(void* params) {
     (void)params;
     while (true) {
@@ -75,8 +85,8 @@ static void consumerTask(void* params) {
             printf("[Consumer] No data for %" PRIu32 " ms...\n", kConsumerTimeoutMs);
             continue;
         }
-        printf("[Consumer] Sensor %d: value %" PRIu8 ", read at %" PRIu32 " ms\n", reading.sensor, reading.value,
-               pdTICKS_TO_MS(reading.timestampTicks));
+        printf("[Consumer] Sensor %s: value %" PRIu8 ", read at %" PRIu32 " ms\n", sensorName(reading.sensor),
+               reading.value, pdTICKS_TO_MS(reading.timestampTicks));
     }
 }
 
