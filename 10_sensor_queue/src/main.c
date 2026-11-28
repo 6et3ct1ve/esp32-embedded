@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -24,10 +25,12 @@ static const BaseType_t kAppCore = 1;
 typedef enum {
     kSensorFirst,
     kSensorSecond,
+    kSensorCount,
 } SensorId;
 
 typedef struct {
     SensorId sensor;
+    uint32_t seq;
     uint8_t value;
     TickType_t timestampTicks;
 } SensorReading;
@@ -50,16 +53,24 @@ static const ProducerConfig kProducerConfigs[] = {
      .name = "ProducerSecond"},
 };
 
+static_assert(sizeof(kProducerConfigs) / sizeof(kProducerConfigs[0]) == kSensorCount,
+              "kProducerConfigs must have one row per sensor");
+
 static QueueHandle_t sensorQueueHandle = NULL;
 
 static void producerTask(void* params) {
     const ProducerConfig* config = params;
     TickType_t lastWake = xTaskGetTickCount();
     const TickType_t period = pdMS_TO_TICKS(config->periodMs);
+    uint32_t seq = 0;
     while (true) {
         xTaskDelayUntil(&lastWake, period);
         const SensorReading reading = {
-            .sensor = config->sensor, .value = (uint8_t)esp_random(), .timestampTicks = xTaskGetTickCount()};
+            .sensor = config->sensor,
+            .seq = seq++,
+            .value = (uint8_t)esp_random(),
+            .timestampTicks = xTaskGetTickCount(),
+        };
         const BaseType_t result = xQueueSend(sensorQueueHandle, &reading, pdMS_TO_TICKS(kProducerTimeoutMs));
         if (result != pdPASS) {
             printf("[%s] Queue full, reading dropped...\n", config->name);
@@ -73,12 +84,15 @@ static const char* sensorName(SensorId sensorId) {
             return "First";
         case kSensorSecond:
             return "Second";
+        case kSensorCount:
+            break;
     }
     return "Unknown";
 }
 
 static void consumerTask(void* params) {
     (void)params;
+    uint32_t nextSeq[kSensorCount] = {0};
     while (true) {
         SensorReading reading = {0};
         const BaseType_t result = xQueueReceive(sensorQueueHandle, &reading, pdMS_TO_TICKS(kConsumerTimeoutMs));
@@ -86,8 +100,17 @@ static void consumerTask(void* params) {
             printf("[Consumer] No data for %" PRIu32 " ms...\n", kConsumerTimeoutMs);
             continue;
         }
-        printf("[Consumer] Sensor %s: value %" PRIu8 ", read at %" PRIu32 " ms...\n", sensorName(reading.sensor),
-               reading.value, pdTICKS_TO_MS(reading.timestampTicks));
+        if (reading.sensor >= kSensorCount) {
+            printf("[Consumer] Unknown sensor %d, reading dropped...\n", reading.sensor);
+            continue;
+        }
+        if (reading.seq > nextSeq[reading.sensor]) {
+            printf("[Consumer] Sensor %s: %" PRIu32 " readings lost...\n", sensorName(reading.sensor),
+                   reading.seq - nextSeq[reading.sensor]);
+        }
+        nextSeq[reading.sensor] = reading.seq + 1;
+        printf("[Consumer] Sensor %s: #%" PRIu32 " value %" PRIu8 ", read at %" PRIu32 " ms...\n",
+               sensorName(reading.sensor), reading.seq, reading.value, pdTICKS_TO_MS(reading.timestampTicks));
     }
 }
 
